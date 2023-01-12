@@ -6,7 +6,7 @@ const CategoriesController = require('../controllers/categories.controller');
 const route = express.Router();
 
 route.post('/', tokenMiddleware, categoryMiddleware, CategoriesController.addCategory);
-// route.get('/', CategoriesController.findAllUser);
+route.get('/', tokenMiddleware, CategoriesController.findAllCategories);
 // route.get('/:id', CategoriesController.findById);
 
 module.exports = route;
