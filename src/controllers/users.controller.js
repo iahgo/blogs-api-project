@@ -10,6 +10,12 @@ const addUser = async (req, res) => {
   return res.status(201).json(message);
 };
 
+const findAllUser = async (_req, res) => {
+  const { message } = await userService.findAllUser();
+  return res.status(200).json(message);
+};
+
 module.exports = {
   addUser,
+  findAllUser,
 };
