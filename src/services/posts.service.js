@@ -22,16 +22,22 @@ const findAllPosts = async () => {
   return posts;
 };
 
-// const findById = async (id) => {
-//   const user = await BlogPost.findByPk(id, { attributes: { exclude: ['password'] } });
+const findById = async (id) => {
+  const post = await BlogPost.findAll({
+    where: { id },
+    include: [
+      { model: User, as: 'user', attributes: { exclude: ['password'] } },
+      { model: Category, as: 'categories', through: { attributes: [] } },
+    ],
+  });
   
-//   if (!user) return ({ type: 'USER_NOT_EXIST', message: 'User does not exist' });
+  if (post.length === 0) return ({ type: 'POST_NOT_EXIST', message: 'Post does not exist' });
   
-//   return { message: user };
-// };
+  return { message: post };
+};
 
 module.exports = {
   // addUser,
   findAllPosts,
-  // findById,
+  findById,
 };
