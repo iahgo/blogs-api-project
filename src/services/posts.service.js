@@ -1,5 +1,5 @@
 const { BlogPost, User, Category } = require('../models');
-// const { createToken } = require('../auth/jwtFunctions');
+const { verifyToken } = require('../auth/jwtFunctions');
 
 // const addUser = async (displayName, email, password, image) => {
 //   const user = await BlogPost.findOne({ where: { email } });
@@ -36,8 +36,53 @@ const findById = async (id) => {
   return { message: post };
 };
 
+const checkUserPost = async (id) => {
+  const data = await BlogPost.findAll({
+    where: { id },
+  });
+  if (data.length === 0) {
+    return { message: 'Post does not exist' };
+  }
+  return data;
+};
+
+const checkUser = async (authorization, checkPost) => {
+  const { dataValues } = checkPost[0];
+  const datas = await verifyToken(authorization); 
+
+  const { email } = datas.data;
+  const user = await User.findOne({ 
+    where: { email },
+  });
+
+  if (dataValues.userId !== user.id) {
+    return { message: 'Unauthorized user' };
+  }
+  return checkPost;
+};
+
+const updateById = async (id, title, content) => {
+  await BlogPost.update(
+    { title, content },
+    { where: { id } },
+  );
+  const updatePost = await BlogPost.findOne(
+    { 
+      where: { id },
+      include: [
+        { model: User, as: 'user', atributes: { exclude: ['password'] } },
+        { model: Category, as: 'categories', through: { attributes: [] } },
+      ],
+    },
+  );
+  return updatePost;
+};
+
 module.exports = {
   // addUser,
   findAllPosts,
   findById,
+  updateById,
+  checkUser,
+  checkUserPost,
 };

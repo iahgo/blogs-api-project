@@ -1,10 +1,10 @@
 const jwt = require('jsonwebtoken');
 
-const secret = process.env.JWT_SECRET || 'seuSegredoAqui';
+const secret = process.env.JWT_SECRET || 'senhaSecreta';
 
 const jwtConfig = {
   algorithm: 'HS256',
-  expiresIn: '10min',
+  expiresIn: '30min',
 };
 
 const createToken = (userWithoutPassword) => {
@@ -17,7 +17,9 @@ const verifyToken = (authorization) => {
     const payload = jwt.verify(authorization, secret);
     return payload;
   } catch (error) {
-    return { isError: true, error };
+    console.log('deu erro na merda do tokennnnnnnnnnnnnnnnnnnn');
+    console.log(error);
+    return { error };
   }
 };
 
