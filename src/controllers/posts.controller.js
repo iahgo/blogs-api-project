@@ -1,14 +1,19 @@
+const { verifyToken } = require('../auth/jwtFunctions');
 const postService = require('../services/posts.service');
 
-// const addUser = async (req, res) => {
-//   const { displayName, email, password, image } = req.body;
+const addPost = async (req, res) => {
+  const dataPost = req.body;
+  const { categoryIds } = req.body;
+  const { authorization } = req.headers;
 
-//   const { type, message } = await postService.addUser(displayName, email, password, image);
-
-//   if (type) return res.status(409).json({ message });
-
-//   return res.status(201).json(message);
-// };
+  const categoryExist = await postService.checkCategory(categoryIds);
+  if (categoryExist.message) return res.status(400).json(categoryExist);
+  
+  const token = verifyToken(authorization);
+  const email = await postService.checkEmail(token);
+  const newPost = await postService.addPost(dataPost, email);
+  return res.status(201).json(newPost.dataValues);
+};
 
 const findAllPosts = async (_req, res) => {
   const posts = await postService.findAllPosts();
@@ -37,9 +42,24 @@ const updateById = async (req, res) => {
     return res.status(200).json(updatePost);
 };
 
+const deleteById = async (req, res) => {
+  const { id } = req.params;
+  const { authorization } = req.headers;
+
+  const checkPost = await postService.checkUserPost(id);
+  if (checkPost.message) return res.status(404).json(checkPost);
+
+  const checkUser = await postService.checkUser(authorization, checkPost);
+  if (checkUser.message) return res.status(401).json(checkUser);
+
+  const deletePost = await postService.deleteById(id);
+  return res.status(204).json(deletePost);
+};
+
 module.exports = {
-  // addUser,
+  addPost,
   findAllPosts,
   findById,
   updateById,
+  deleteById,
 };

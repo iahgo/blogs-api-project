@@ -1,16 +1,27 @@
-const { BlogPost, User, Category } = require('../models');
+const { BlogPost, User, Category, PostCategory } = require('../models');
 const { verifyToken } = require('../auth/jwtFunctions');
 
-// const addUser = async (displayName, email, password, image) => {
-//   const user = await BlogPost.findOne({ where: { email } });
-//   if (user) return { type: 'USER_ALREADY_REGISTERED', message: 'User already registered' };
-//   const newUser = await User.create({ displayName, email, password, image });
+const addPost = async (dataPost, dataValues) => {
+  const { categoryIds } = dataPost;
+  const post = await BlogPost.create(
+    {
+      title: dataPost.title,
+      content: dataPost.content,
+      userId: dataValues.id,
+    },
+  );
+  const { id } = post.dataValues;
 
-//   const { password: _password, ...userWithoutPassword } = newUser.dataValues;
-//   const token = createToken(userWithoutPassword);
-
-//   return { type: null, message: { token } };
-// };
+  await PostCategory.bulkCreate(
+    categoryIds.map((idValue) => (
+      {
+        postId: id,
+        categoryId: idValue,
+      }
+    )),
+  );
+  return post;
+};
 
 const findAllPosts = async () => {
   const posts = await BlogPost.findAll({
@@ -45,6 +56,13 @@ const checkUserPost = async (id) => {
   }
   return data;
 };
+const checkEmail = async (dataToken) => {
+  const { email } = dataToken.data;
+  const checkEmailUser = await User.findOne({
+    where: { email },
+  });
+  return checkEmailUser;
+};
 
 const checkUser = async (authorization, checkPost) => {
   const { dataValues } = checkPost[0];
@@ -54,7 +72,7 @@ const checkUser = async (authorization, checkPost) => {
   const user = await User.findOne({ 
     where: { email },
   });
-
+console.log('chegou aqui');
   if (dataValues.userId !== user.id) {
     return { message: 'Unauthorized user' };
   }
@@ -78,11 +96,33 @@ const updateById = async (id, title, content) => {
   return updatePost;
 };
 
+const deleteById = async (id) => {
+  await BlogPost.destroy({
+    where: { id },
+  });
+return { message: 'Post deleted' };
+};
+
+const checkCategory = async (categoryIds) => {
+  const { count } = await Category.findAndCountAll({
+    where: { id: categoryIds },
+  });
+  if (count !== categoryIds.length) {
+    return {      
+        message: 'one or more "categoryIds" not found',
+    };
+  }
+  return true;
+};
+
 module.exports = {
-  // addUser,
+  addPost,
   findAllPosts,
   findById,
   updateById,
   checkUser,
   checkUserPost,
+  deleteById,
+  checkCategory,
+  checkEmail,
 };
