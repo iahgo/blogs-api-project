@@ -1,5 +1,5 @@
 const { User } = require('../models');
-const { createToken } = require('../auth/jwtFunctions');
+const { createToken, verifyToken } = require('../auth/jwtFunctions');
 
 const addUser = async (displayName, email, password, image) => {
   const user = await User.findOne({ where: { email } });
@@ -26,8 +26,24 @@ const findById = async (id) => {
   return { message: user };
 };
 
+const deleteUser = async (authorization) => {
+  const dataToken = await verifyToken(authorization);
+  const { email } = dataToken.data;
+  const { dataValues } = await User.findOne({
+    where: { email },
+    attributes: { exclude: ['password'] }, 
+  });
+  if (dataValues.length === 0) return { message: 'User not found' };
+
+  await User.destroy({
+    where: { id: dataValues.id },
+  });
+  return { code: 204 };
+};
+
 module.exports = {
   addUser,
   findAllUser,
   findById,
+  deleteUser,
 };
