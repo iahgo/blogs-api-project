@@ -17,7 +17,6 @@ const verifyToken = (authorization) => {
     const payload = jwt.verify(authorization, secret);
     return payload;
   } catch (error) {
-    console.log('deu erro na merda do tokennnnnnnnnnnnnnnnnnnn');
     console.log(error);
     return { error };
   }
